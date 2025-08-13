@@ -1,0 +1,40 @@
+# Python-specific
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Flask-specific
+instance/
+*.log
+
+# Project-specific directories
+uploads/
+logs/
+
+# Environment variables
+.env
+*.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Miscellaneous
+*.bak
+*.swp
+*~
