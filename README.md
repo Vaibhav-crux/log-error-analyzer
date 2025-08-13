@@ -1,116 +1,123 @@
-# 🔍 Log File Error Analyzer
+# Log Error Analyzer
 
-The **Log File Error Analyzer** is a backend application that allows users to upload `.log` or `.txt` files, extract error messages, and analyze them using the **Google Gemini API** (free tier).
-
-* Built with **Flask** (backend), **HTML/JavaScript** (frontend)
-* Extracts lines with `"ERROR"` from log files
-* Sends them to **Gemini (gemini-1.5-flash)** for analysis
-* Returns a structured JSON response with descriptions and resolution steps
-* Supports CORS and has comprehensive logging
+**Log Error Analyzer** is a Flask-based web application that allows users to upload `.log` or `.txt` files, extract error messages, and analyze them using the **Google Gemini API** (free tier). The backend processes files, extracts errors, and sends them to Gemini for analysis, returning JSON responses with detailed error insights. The frontend displays errors in styled cards with a loading spinner for improved UX.
 
 ---
 
 ## 📁 Project Structure
 
 ```
+
 log-error-analyzer/
-├── app.py                  # Flask backend with /upload and /process_errors APIs
-├── logger.py               # Logging configuration
-├── uploads/                # Directory for uploaded log files
-└── logs/                   # Directory for application logs (app.log)
-```
+├── .env                    # Environment variables (e.g., GEMINI\_API\_KEY)
+├── .env.example            # Template for environment variables
+├── .gitignore              # Git ignore file
+├── README.md               # Project documentation
+├── requirements.txt        # Python dependencies
+├── app/                    # Main application code
+│   ├── main.py             # Flask application entry point
+│   ├── core/               # Core configuration and utilities
+│   │   ├── auth.py         # Authentication logic (placeholder)
+│   │   ├── config.py       # Configuration settings
+│   ├── middleware/         # Middleware
+│   │   ├── cors.py         # CORS middleware
+│   │   ├── error\_handler.py# Error handling middleware
+│   │   ├── gzip.py         # GZIP compression middleware
+│   │   ├── logging.py      # Request logging middleware
+│   │   ├── rate\_limiter.py # Rate limiting middleware
+│   ├── routes/             # Route definitions
+│   │   ├── log.py          # Log file upload and error processing endpoints
+│   ├── schemas/            # Schemas for request/response validation
+│   │   ├── log.py          # Schemas for log upload and error processing
+│   ├── services/           # Business logic
+│   │   ├── gemini.py       # Gemini API integration
+│   │   ├── log\_processor.py# Log file processing logic
+│   ├── utils/              # Utility functions
+│   │   ├── logger.py       # Logging setup
+├── frontend/               # Frontend assets
+│   ├── index.html          # Frontend UI
+├── uploads/                # Directory for uploaded files
+└── logs/                   # Directory for application logs
+
+````
 
 ---
 
-## ⚙️ Technique
+## 🧠 Technique
 
-### Step 1: File Upload and Error Extraction
+### 🔹 File Upload and Error Extraction
 
-* User uploads a `.log` or `.txt` file
-* Backend (`/upload`) saves and reads the file
-* Extracts lines containing `"ERROR"`
-* Returns them as a JSON array
+- Endpoint: `/api/upload` (POST, `multipart/form-data`)
+- Backend saves the uploaded file
+- Extracts lines containing `"ERROR"`
+- Returns a JSON array of extracted errors
 
-### Step 2: Error Analysis (Gemini API)
+### 🔹 Error Analysis with Gemini API
 
-* Frontend sends extracted errors to `/process_errors`
-* Each error is sent to **Gemini API**
-* Returns:
+- Endpoint: `/api/process_errors` (POST, `application/json`)
+- Each error is sent to Gemini (model: `gemini-1.5-flash`)
+- Gemini returns structured JSON:
+  - `error`
+  - `description`
+  - `resolve_technique`
 
-  * `error`: The raw error message
-  * `description`: Why it occurred
-  * `resolve_technique`: How to fix it
+### 🔹 Frontend Display
 
----
-
-## 🌟 Features
-
-* ✅ **Gemini API Integration** (free tier `gemini-1.5-flash`)
-* 📄 **Logs** saved to `logs/app.log`
-* 🔐 **CORS** configured for `http://127.0.0.1:5500`
+- Displays each analyzed error in a styled card
+- Includes a loading spinner during API calls
 
 ---
 
-## 🚫 Limitations
+## ✨ Features
 
-* Gemini Free Tier: **Rate limits** apply (processed individually to avoid 429 errors)
+- **Gemini API Integration**: Uses free-tier Gemini for analyzing log errors
+- **Middleware Stack**: CORS, GZIP, error handling, rate limiting, logging
+- **Validation**: Input/output schema validation
+- **Logging**: Logs stored in `logs/app.log` for debugging and tracing
+
 ---
 
-## 🛠️ Setup Instructions
+## ⚙️ Setup Instructions
 
 ### ✅ Prerequisites
 
-* Python 3.8+
-* pip install -r requirements.txt
-* Google Cloud account + Gemini API key
+- Python 3.8+
+- [Insomnia](https://insomnia.rest/) (for API testing)
+- VS Code with Live Server
+- Google Cloud account with Gemini API key
 
 ---
 
 ### 📦 Installation
 
 ```bash
-# Clone the repository
+# Clone the Repository
 git clone https://github.com/Vaibhav-crux/log-error-analyzer.git
 cd log-error-analyzer
 
-# Create virtual environment
+# Set up Virtual Environment
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install flask flask-cors google-generativeai
-```
+# Install Dependencies
+pip install -r requirements.txt
 
----
+# Configure Environment
+cp .env.example .env
+# Then update GEMINI_API_KEY inside the .env file
+````
 
-### 🔑 Configure Gemini API Key
+* Get your API key from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 
-1. Open `app.py`
-2. Replace this line:
-
-```python
-GEMINI_API_KEY = 'your-gemini-api-key-here'
-```
-
-3. Generate a key via Google Cloud Console:
-
-   * Navigate to: **APIs & Services > Credentials**
-   * Create an API key
-   * Enable **Gemini API**
-
----
-
-### 📁 Create Required Directories
+### 📁 Create Directories
 
 ```bash
 mkdir uploads logs
 ```
 
----
+### 🧪 Prepare a Test File
 
-### 🧪 Prepare Test File
-
-Create `uploads/application.txt` with the following content:
+Create a test log file at `uploads/application.txt`:
 
 ```
 [2025-08-13 08:19:05] ERROR    File upload failed: File type not supported
@@ -121,102 +128,88 @@ Create `uploads/application.txt` with the following content:
 
 ---
 
-### 🚀 Running the Application
+## 🚀 Running the Application
 
-#### Start Flask Backend
+### ▶️ Start Flask Backend
 
 ```bash
-python app.py
+python app/main.py
 ```
 
-* Runs on: `http://127.0.0.1:5000`
-* Logs saved in `logs/app.log`
+> Runs on: `http://127.0.0.1:5000`
+
+### 🌐 Start Frontend
+
+1. Open `frontend/index.html` in VS Code
+2. Right-click → "Open with Live Server"
+
+> Opens on: `http://127.0.0.1:5500`
 
 ---
 
-## 📡 API Reference
+## ✅ Test the Application
 
-### 📁 `/upload`
+1. Go to `http://127.0.0.1:5500`
+2. Upload the sample `application.txt`
+3. Wait for spinner and verify four error cards show up
 
-* **Method:** `POST`
-* **Content-Type:** `multipart/form-data`
-* **Description:** Uploads a `.log` or `.txt` file and extracts `"ERROR"` lines
+---
 
-#### Request Body:
+## 🧪 API Endpoints
 
-| Field     | Type | Description           |
-| --------- | ---- | --------------------- |
-| `logfile` | File | `.log` or `.txt` file |
+### 1. `/api/upload`
 
-#### Example Request (Insomnia)
+* **Method**: `POST`
+* **Content-Type**: `multipart/form-data`
+* **Description**: Uploads a `.log` or `.txt` file, extracts `"ERROR"` lines
 
-* Method: `POST`
-* URL: `http://127.0.0.1:5000/upload`
-* Body: `multipart/form-data`
+**Request Body**:
 
-  * Field: `logfile` = `uploads/application.txt`
+| Field   | Type | Description          |
+| ------- | ---- | -------------------- |
+| logfile | File | Log file (.log/.txt) |
 
-#### Example Response:
+**Example Response**:
 
 ```json
 {
   "message": "Errors extracted, ready for processing",
   "errors": [
-    "File upload failed: File type not supported",
-    "Login failed for user 'charlie': Invalid credentials",
-    "API error: Timeout while contacting external service",
-    "Failed to send notification email: SMTP server unreachable"
+    "error1",
+    "error2",
+    ...
   ]
 }
 ```
 
 ---
 
-### 🔍 `/process_errors`
+### 2. `/api/process_errors`
 
-* **Method:** `POST`
-* **Content-Type:** `application/json`
-* **Description:** Sends error messages to Gemini API and returns analysis
+* **Method**: `POST`
+* **Content-Type**: `application/json`
+* **Description**: Sends extracted errors to Gemini API for analysis
 
-#### Request Body:
+**Request Body**:
 
 ```json
 {
-  "errors": [
-    "File upload failed: File type not supported",
-    "Login failed for user 'charlie': Invalid credentials",
-    "API error: Timeout while contacting external service",
-    "Failed to send notification email: SMTP server unreachable"
-  ]
+  "errors": ["error1", "error2", ...]
 }
 ```
 
-#### Example Response:
+**Example Response**:
 
 ```json
 {
   "message": "Error analysis complete",
   "errors": [
     {
-      "error": "File upload failed: File type not supported",
-      "description": "The file type uploaded by user 'bob' is not allowed by the system.",
-      "resolve_technique": "Ensure the file type is supported (e.g., .txt, .log) and retry the upload."
+      "error": "error1",
+      "description": "Why it happened",
+      "resolve_technique": "How to fix"
     },
-    {
-      "error": "Login failed for user 'charlie': Invalid credentials",
-      "description": "User 'charlie' provided incorrect username or password.",
-      "resolve_technique": "Verify the credentials and try logging in again or reset the password."
-    },
-    {
-      "error": "API error: Timeout while contacting external service",
-      "description": "The request to an external service timed out.",
-      "resolve_technique": "Check the external service status and retry the request."
-    },
-    {
-      "error": "Failed to send notification email: SMTP server unreachable",
-      "description": "The SMTP server could not be contacted to send an email.",
-      "resolve_technique": "Check the SMTP server configuration and ensure the server is reachable."
-    }
+    ...
   ]
 }
 ```
@@ -225,35 +218,34 @@ python app.py
 
 ## 🧪 Testing with Insomnia/Postman
 
-1. **Upload File**
+1. **Install**: [Insomnia](https://insomnia.rest)
 
-   * POST `http://127.0.0.1:5000/upload`
-   * Body: `multipart/form-data`
-   * Field: `logfile` → Select test file
+2. **Test Upload Endpoint**:
 
-2. **Process Errors**
+   * **Method**: POST
+   * **URL**: `http://127.0.0.1:5000/api/upload`
+   * **Body**: `multipart/form-data`
 
-   * POST `http://127.0.0.1:5000/process_errors`
-   * Body: JSON
-   * Paste `errors` array from `/upload` response
+     * `logfile`: `uploads/application.txt`
 
----
+3. **Test Process Errors**:
 
-## 🐛 Debugging
+   * **Method**: POST
+   * **URL**: `http://127.0.0.1:5000/api/process_errors`
+   * **Body**: Raw JSON with errors returned from previous step
 
-### Gemini API Errors
+4. **Verify**:
 
-Check `logs/app.log` for:
-
-```
-[ERROR] Failed to configure Gemini API: ...
-[ERROR] Gemini API error: [401] Unauthorized...
-[ERROR] Gemini API error: [429] Too Many Requests...
-```
-
-### Solution
-
-* Verify your **API key**
-* Respect Gemini rate limits
+   * HTTP 200 OK
+   * Valid JSON response
 
 ---
+
+## 🐞 Debugging
+
+* **Logs**: Check `logs/app.log` for backend issues (including Gemini API failures)
+* **Frontend**: Use browser dev tools (F12) to inspect network requests and console errors
+* **Gemini API**:
+
+  * Ensure API key is valid
+  * Watch for HTTP `401` (unauthorized) or `429` (rate limit)
